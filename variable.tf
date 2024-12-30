@@ -6,6 +6,11 @@ variable "all_tags" {
   type        = map(string)
   default     = {}
 }
+variable "common_resource_name" {
+  description = "Forward- {var.project_code}-{var.account}-{var.aws_region_code} // Added- resource-{az}-{name}"
+  type        = string
+  default     = ""
+}
 
 
 ################################################################################
@@ -60,73 +65,110 @@ variable "vpc_tags" {
 }
 
 
+################################################################################
+# Subnets
+################################################################################
+variable "public_subnet_cidr_blocks" {
+    type = list(
+      object({
+        name       = string
+        cidr_block = string
+        az         = string
+        })
+    )
+    default = []
+    description = "Subnet has IGW routing rule for 0.0.0.0/0"
+}
+
+variable "private_subnet_cidr_blocks" {
+    type = list(
+      object({
+        name       = string
+        cidr_block = string
+        az         = string
+        })
+    )
+    default = []
+    description = "Subnet has local routing rule and NAT gateway rule"
+}
+
+variable "prvonly_subnet_cidr_blocks" {
+    type = list(
+      object({
+        name       = string
+        cidr_block = string
+        az         = string
+        })
+    )
+    default = []
+    description = "Subnet only has local routing rule"
+}
 
 
+################################################################################
+# Gateway
+################################################################################
+variable "create_igw" {
+  description = "Controls if IGW should be created (it affects almost all resources)"
+  type        = bool
+  default     = true
+}
+variable "igw_name" {
+  description = "Name to be used on all the resources as identifier"
+  type        = string
+  default     = ""
+}
 
+variable "nat_gateway_subnet_name" {
+  description = "Subnets that should be created NAT gateway"
+  type        = string
+  default     = "sbn-dmz"
+}
 
+variable "enable_nat_gateway" {
+  description = "Should be true if you want to provision NAT Gateways for each of your private networks"
+  type        = bool
+  default     = false
+}
 
+variable "natgw_name" {
+  description = "Name to be used on all the resources as identifier"
+  type        = string
+  default     = ""
+}
 
+variable "single_nat_gateway" {
+  description = "Should be true if you want to provision a single shared NAT Gateway across all of your private networks"
+  type        = bool
+  default     = false
+}
 
+variable "one_nat_gateway_per_az" {
+  description = "Should be true if you want only one NAT Gateway per availability zone. Requires `var.azs` to be set, and the number of `public_subnets` created to be greater than or equal to the number of availability zones specified in `var.azs`"
+  type        = bool
+  default     = false
+}
 
+variable "reuse_nat_ips" {
+  description = "Should be true if you don't want EIPs to be created for your NAT Gateways and will instead pass them in via the 'external_nat_ip_ids' variable"
+  type        = bool
+  default     = false
+}
 
-
-variable "azs" {
-  description = "A list of availability zones names or ids in the region"
+variable "external_nat_ip_ids" {
+  description = "List of EIP IDs to be assigned to the NAT Gateways (used in combination with reuse_nat_ips)"
   type        = list(string)
   default     = []
 }
 
-
-variable "enable_network_address_usage_metrics" {
-  description = "Determines whether network address usage metrics are enabled for the VPC"
-  type        = bool
-  default     = null
+variable "external_nat_ips" {
+  description = "List of EIPs to be used for `nat_public_ips` output (used in combination with reuse_nat_ips and external_nat_ip_ids)"
+  type        = list(string)
+  default     = []
 }
 
-variable "use_ipam_pool" {
-  description = "Determines whether IPAM pool is used for CIDR allocation"
-  type        = bool
-  default     = false
-}
-
-variable "ipv4_ipam_pool_id" {
-  description = "(Optional) The ID of an IPv4 IPAM pool you want to use for allocating this VPC's CIDR"
+variable "nat_gateway_destination_cidr_block" {
+  description = "Used to pass a custom destination route for private NAT Gateway. If not specified, the default 0.0.0.0/0 is used as a destination route"
   type        = string
-  default     = null
-}
-
-variable "ipv4_netmask_length" {
-  description = "(Optional) The netmask length of the IPv4 CIDR you want to allocate to this VPC. Requires specifying a ipv4_ipam_pool_id"
-  type        = number
-  default     = null
-}
-
-variable "enable_ipv6" {
-  description = "Requests an Amazon-provided IPv6 CIDR block with a /56 prefix length for the VPC. You cannot specify the range of IP addresses, or the size of the CIDR block"
-  type        = bool
-  default     = false
-}
-
-variable "ipv6_cidr" {
-  description = "(Optional) IPv6 CIDR block to request from an IPAM Pool. Can be set explicitly or derived from IPAM using `ipv6_netmask_length`"
-  type        = string
-  default     = null
-}
-
-variable "ipv6_ipam_pool_id" {
-  description = "(Optional) IPAM Pool ID for a IPv6 pool. Conflicts with `assign_generated_ipv6_cidr_block`"
-  type        = string
-  default     = null
-}
-
-variable "ipv6_netmask_length" {
-  description = "(Optional) Netmask length to request from IPAM Pool. Conflicts with `ipv6_cidr_block`. This can be omitted if IPAM pool as a `allocation_default_netmask_length` set. Valid values: `56`"
-  type        = number
-  default     = null
-}
-
-variable "ipv6_cidr_block_network_border_group" {
-  description = "By default when an IPv6 CIDR is assigned to a VPC a default ipv6_cidr_block_network_border_group will be set to the region of the VPC. This can be changed to restrict advertisement of public addresses to specific Network Border Groups such as LocalZones"
-  type        = string
-  default     = null
+  default     = "0.0.0.0/0"
 }
