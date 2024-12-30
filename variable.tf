@@ -6,6 +6,8 @@ variable "all_tags" {
   type        = map(string)
   default     = {}
 }
+
+## Customer can define project_code, account, aws_region_code as a their default resource name.
 variable "common_resource_name" {
   description = "Forward- {var.project_code}-{var.account}-{var.aws_region_code} // Added- resource-{az}-{name}"
   type        = string
