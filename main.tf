@@ -74,7 +74,8 @@ resource "aws_subnet" "private_subnets" {
   map_public_ip_on_launch   = true
   tags = merge(
     { "Name" =  "${var.common_resource_name}-sbn-${split("-",each.value.az)[2]}-${each.value.name}"},
-    var.all_tags
+    var.all_tags,
+    (each.value.name == var.karpenter_subnet_name ? var.karpenter_tag : {})
   )
 }
 
