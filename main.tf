@@ -71,7 +71,7 @@ resource "aws_subnet" "private_subnets" {
 
   cidr_block                = each.value.cidr_block
   availability_zone         = each.value.az
-  map_public_ip_on_launch   = true
+  map_public_ip_on_launch   = false
   tags = merge(
     { "Name" =  "${var.common_resource_name}-sbn-${split("-",each.value.az)[2]}-${each.value.name}"},
     var.all_tags,
@@ -86,7 +86,7 @@ resource "aws_subnet" "prvonly_subnets" {
 
   cidr_block                = each.value.cidr_block
   availability_zone         = each.value.az
-  map_public_ip_on_launch   = true
+  map_public_ip_on_launch   = false
   tags = merge(
     { "Name" =  "${var.common_resource_name}-sbn-${split("-",each.value.az)[2]}-${each.value.name}"},
     var.all_tags
