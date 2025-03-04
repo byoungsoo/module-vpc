@@ -139,6 +139,17 @@ variable "karpenter_tag" {
   default     = {}
 }
 
+variable "intelb_subnet_name" {
+  description = "Subnets that should be selected by AWS LBC"
+  type        = string
+  default     = "app"
+}
+
+variable "intelb_tag" {
+  description = "Additional tags for the AWS LBC"
+  type        = map(string)
+  default     = {}
+}
 
 variable "enable_nat_gateway" {
   description = "Should be true if you want to provision NAT Gateways for each of your private networks"

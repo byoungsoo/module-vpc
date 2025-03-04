@@ -50,6 +50,8 @@ locals {
   private_subnet_ids = [for subnet in aws_subnet.private_subnets : subnet.id]
   prvonly_subnet_ids = [for subnet in aws_subnet.prvonly_subnets : subnet.id]
 }
+
+
 resource "aws_subnet" "public_subnets" {
   for_each = { for subnet in var.public_subnet_cidr_blocks : "${subnet.name}-${split("-",subnet.az)[2]}" => subnet }
   # sbn-dmz-az1 => {name="sbn-dmz-az1", cidr_block="10.5.1.0/24", az="us-east-1a"},
@@ -65,8 +67,9 @@ resource "aws_subnet" "public_subnets" {
 }
 
 resource "aws_subnet" "private_subnets" {
-    for_each = { for subnet in var.private_subnet_cidr_blocks : "${subnet.name}-${split("-",subnet.az)[2]}" => subnet }
+  for_each = { for subnet in var.private_subnet_cidr_blocks : "${subnet.name}-${split("-",subnet.az)[2]}" => subnet }
   # sbn-dmz-az1 => {name="sbn-dmz-az1", cidr_block="10.5.1.0/24", az="us-east-1a"},
+  # {name="extelb", cidr_block="10.25.11.0/24", az="us-east-1a"},
   vpc_id                    = aws_vpc.vpc_main[0].id
 
   cidr_block                = each.value.cidr_block
@@ -75,12 +78,13 @@ resource "aws_subnet" "private_subnets" {
   tags = merge(
     { "Name" =  "${var.common_resource_name}-sbn-${split("-",each.value.az)[2]}-${each.value.name}"},
     var.all_tags,
+    (each.value.name == var.intelb_subnet_name ? var.intelb_tag : {}),
     (each.value.name == var.karpenter_subnet_name ? var.karpenter_tag : {})
   )
 }
 
 resource "aws_subnet" "prvonly_subnets" {
-    for_each = { for subnet in var.prvonly_subnet_cidr_blocks : "${subnet.name}-${split("-",subnet.az)[2]}" => subnet }
+  for_each = { for subnet in var.prvonly_subnet_cidr_blocks : "${subnet.name}-${split("-",subnet.az)[2]}" => subnet }
   # sbn-dmz-az1 => {name="sbn-dmz-az1", cidr_block="10.5.1.0/24", az="us-east-1a"},
   vpc_id                    = aws_vpc.vpc_main[0].id
 
